@@ -291,7 +291,7 @@ clean_ny_noaa %>%
 
 ### 3-3) Make a two-panel plot (B)
 
-```{r two_panel_plot_b}
+```{r two_panel_plot_b, fig.asp = 1.0, fig.height = 20}
 temp_plot = 
   clean_ny_noaa %>% 
   ggplot(aes(x = tmax, y = tmin)) +
@@ -327,8 +327,6 @@ snow_plot =
 
 temp_snow_plot = temp_plot / snow_plot
 temp_snow_plot
-
-ggsave(filename = "temp_snow_plot.pdf", plot = temp_snow_plot)
 ```
 
 
