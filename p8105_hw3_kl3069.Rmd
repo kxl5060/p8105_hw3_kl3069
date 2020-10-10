@@ -301,7 +301,25 @@ clean_ny_noaa %>%
                                   lineheight=1.2))
 ```
 
-
+```{r two_panel_plot_3}
+clean_ny_noaa %>% 
+  filter(snow > 0 & snow < 100) %>% 
+  mutate(year = factor(year)) %>% 
+  ggplot(aes(x = year, y = snow)) +
+  geom_violin(draw_quantiles = c(0.25, 0.5, 0.75)) +
+  stat_summary(fun = "mean", color = "blue") +
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5)) +
+  labs(
+    title = "Snowfall Distribution in NY",
+    x = "Year",
+    y = "Snowfall (mm)",
+    caption = "Datasource: ny_noaa"
+    ) +
+  theme(plot.title = element_text(face="bold",
+                                  hjust=0.5,
+                                  lineheight=1.2))
+  
+```
 
 
 
