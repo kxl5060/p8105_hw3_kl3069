@@ -9,6 +9,7 @@ output:
 
 ```{r load_packages, message = FALSE}
 library(tidyverse)
+library(patchwork)
 library(p8105.datasets)
 
 knitr::opts_chunk$set(
@@ -286,7 +287,8 @@ clean_ny_noaa %>%
 ### 3-3) Make a two-panel plot (2)
 
 ```{r two_panel_plot_2}
-clean_ny_noaa %>% 
+temp_plot = 
+  clean_ny_noaa %>% 
   ggplot(aes(x = tmax, y = tmin)) +
   geom_hex(bins = 100) +
   geom_smooth(se = FALSE) +
@@ -299,10 +301,9 @@ clean_ny_noaa %>%
   theme(plot.title = element_text(face="bold",
                                   hjust=0.5,
                                   lineheight=1.2))
-```
 
-```{r two_panel_plot_3}
-clean_ny_noaa %>% 
+snow_plot = 
+  clean_ny_noaa %>% 
   filter(snow > 0 & snow < 100) %>% 
   mutate(year = factor(year)) %>% 
   ggplot(aes(x = year, y = snow)) +
@@ -318,8 +319,10 @@ clean_ny_noaa %>%
   theme(plot.title = element_text(face="bold",
                                   hjust=0.5,
                                   lineheight=1.2))
-  
+
+temp_plot / snow_plot
 ```
+
 
 
 
