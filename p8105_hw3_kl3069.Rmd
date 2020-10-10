@@ -325,7 +325,8 @@ snow_plot =
                                   hjust=0.5,
                                   lineheight=1.2))
 
-temp_plot / snow_plot
+temp_snow_plot = temp_plot / snow_plot
+temp_snow_plot
 ```
 
 
