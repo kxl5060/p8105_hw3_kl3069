@@ -41,7 +41,7 @@ head(instacart)
 * Some description about the _instacart_ dataset<br/>
 _Instacart_ is an anonymized dataset with over 3 million online grocery orders from more than 200,000 _Instacart_ users. This dataset contains **`r nrow(instacart)`** rows and **`r ncol(instacart)`** columns. Observations are the level of items in orders by user. There are _`r names(instacart)`_ variables. For some of key variables, the dataset provides information with **`r instacart %>% distinct(order_id) %>% count()`** unique orders and **`r instacart %>% distinct(product_id) %>% count()`** unique products with **`r instacart %>% distinct(department_id) %>% count()`** departments which the products belong to.<br/>
 
-### 1-2) How many aisles are there, and which aisles are the most items ordered from?
+### 1-2) Description about number of aisles and aisles that the most items ordered from
 
 ```{r number_of_aisles}
 # Number of aisles
@@ -86,6 +86,9 @@ instacart %>%
                                   lineheight=1.2))
 ```
 
+* Some comment on the plot<br/>
+When we look at number of items ordered from each aisle, most items are ordered from both _fresh vegetables_ and _fresh fruits_ similarly. When we compare to some of least ordered items such as _butter_ and _candy chocolate_ it seems that the most orders are related to healthy nutrient.<br/>
+
 ### 1-4) Make a table showing the three most popular items
 
 ```{r table_items}
@@ -102,6 +105,10 @@ instacart %>%
   arrange(aisle, rank) %>% 
   knitr::kable()
 ```
+
+* Some comment on the table<br/>
+Here we can observe three most popular items in each of the aisles _baking ingredients_, _dog food care_, and _packaged vegetables fruits_. When comparing three aisles, it seems that more people order from _packaged vegetables fruits_ aisle with top 3 products being **Organic Baby Spinach**, **Organic Raspberries**, and **Organic Blueberries**.<br/>
+
 
 ### 1-5) Make a table showing the mean hour of the day
 
@@ -131,6 +138,9 @@ instacart %>%
   knitr::kable()
 ```
 
+* Some comment on the table<br/>
+The above table shows the mean hour (24-hour format) of the day at which _Pink Lady Apples_ and _Coffee Ice Cream_ are ordered on each day of the week. When we compare the mean hour of order for both _Pink Lady Apples_ and _Coffee Ice Cream_, we can see that, in general, _Coffee Ice Cream_ is ordered later time in the day compared to _Pink Lady Apples_.<br/>
+
 ---
 
 ## Problem 2
@@ -138,6 +148,9 @@ instacart %>%
 ### 2-1) Load, tidy, and otherwise wrangle the data
 
 ```{r tidy_data}
+# Load, tidy, and otherwise wrangle the data
+# Include a weekday vs weekend variable
+
 acc_tidy_df =
   readr::read_csv("./data/accel_data.csv") %>% 
   janitor::clean_names() %>% 
@@ -159,6 +172,9 @@ The initial _accel_data_ dataset comprised of _activity.#_ variables, which are 
 ### 2-2) Aggregate minutes and create a table
 
 ```{r aggregate_table}
+# Aggregate accross minutes
+# Create a table
+
 acc_tidy_df %>% 
   group_by(week, day, activity_day) %>% 
   summarize(total_activiy_counts = sum(activity_counts)) %>% 
@@ -166,20 +182,15 @@ acc_tidy_df %>%
 ```
 
 * Some comment on the table<br/>
-From the table, it seems that, in general, there is an increasing trend of _total_acitivity_counts_ on weekdays from Monday to Friday, excluding week 3 and week 4. Also, when I compared the mean of _total_acitivity_counts_ between weekday (`r acc_tidy_df %>% group_by(week, day, activity_day) %>%  summarize(total_activiy_counts = sum(activity_counts)) %>% filter(activity_day == "weekday") %>% pull(total_activiy_counts) %>% mean(trim = 0)`) and weekend (`r acc_tidy_df %>% group_by(week, day, activity_day) %>% summarize(total_activiy_counts = sum(activity_counts)) %>% filter(activity_day == "weekend") %>% pull(total_activiy_counts) %>% mean(trim = 0)`), it seems that, on average, there were more activity during the weekday compared to weekend.<br/>
-
-```{r}
-acc_tidy_df %>% 
-  group_by(week, day, activity_day) %>% 
-  summarize(total_activiy_counts = sum(activity_counts)) %>% 
-  filter(activity_day == "weekend") %>% 
-  pull(total_activiy_counts) %>% 
-  mean()
-```
+From the table, it seems that, in general, there is an increasing trend of _total_acitivity_counts_ on weekdays from Monday to Friday, excluding week 3 and week 4. Also, when I compared the mean of _total_acitivity_counts_ between weekday (**`r acc_tidy_df %>% group_by(week, day, activity_day) %>%  summarize(total_activiy_counts = sum(activity_counts)) %>% filter(activity_day == "weekday") %>% pull(total_activiy_counts) %>% mean(trim = 0)`**) and weekend (**`r acc_tidy_df %>% group_by(week, day, activity_day) %>% summarize(total_activiy_counts = sum(activity_counts)) %>% filter(activity_day == "weekend") %>% pull(total_activiy_counts) %>% mean(trim = 0)`**), it seems that, on average, there were more activity during the weekday compared to weekend.<br/>
 
 ### 2-3) Make a single-panel plot
 
 ```{r single_panel_plot}
+# Make a single-panel plot
+# Shows the 24-hour activity time courses for each day
+# Use color to indicate day of the week
+
 acc_tidy_df %>% 
   mutate(activity = stringr::str_sub(activity, 10, 13),
          activity = as.numeric(activity)
@@ -201,6 +212,9 @@ acc_tidy_df %>%
                                   lineheight=1.2))
 ```
 
+* Some comment on the plot<br/>
+The above plot shows the 24-hour activity time courses for each day.I have used different colors to indicate day of the week (from Monday to Sunday). There seems to be no apparent pattern across different day of the week. However, we can notice that activities between hours of **0** (12am) and **5** (5am) seem to be the lowest, which makes sense since most people would be sleeping. During the daytime, hours between **9** (9am) and **12** (12pm), and during night-time, hours between **20** (8pm) and **22** (10pm) consist most activity. Especially, on Friday, during night-time, hours between **20** (8pm) and **22** (10pm) there seems to apparent physical activity which might be due to more people engaging in social activities before their weekend starts.<br/>
+
 ---
 
 ## Problem 3
@@ -217,7 +231,6 @@ head(ny_noaa)
 
 * Some description about the _ny_noaa_ dataset<br/>
 This dataset contains information for all New York state weather stations from January 1, 1981 through December 31, 2010. The dataset provides information with _`r ny_noaa %>% names()`_. The size of the dataset has **`r ny_noaa %>% ncol()`** columns and **`r ny_noaa %>% nrow()`** rows. Some key variables include precipitation _(prcp)_  in tenth of mm, snowfall _(snow)_ in mm, snow depth _(snwd)_ in mm, and both maximum _(tmax)_ and minimum _(tmin)_ temperatures in tenths of degree Celcius.<br/>
-
 When we observe the missing values, for precipitation, **`r ny_noaa %>% pull(prcp) %>% is.na() %>% sum()`** values; for snowfall _(snow)_, **`r ny_noaa %>% pull(snow) %>% is.na() %>% sum()`** values; for snow depth _(snwd)_, **`r ny_noaa %>% pull(snwd) %>% is.na() %>% sum()`** values; for maximum temperatures _(tmax)_ , **`r ny_noaa %>% pull(tmax) %>% is.na() %>% sum()`** values; and for minimum temperatures _(tmin)_ , **`r ny_noaa %>% pull(tmin) %>% is.na() %>% sum()`** values are missing, respectively. This leaves us with only **`r ny_noaa %>% complete.cases() %>% sum()`** complete observations.<br/>
 
 ### 3-1) For snowfall, what are the most commonly observed values?
@@ -256,7 +269,7 @@ clean_ny_noaa %>%
   head()
 ```
 
-* Comment on snowfall<br/>
+* Some comment on snowfall<br/>
 As we can see above, the most commonly observed value for snowfall is **0**mm, followed by **NA**, **25**mm, and **13**mm. We can assume that such result occurs as New York has seasonal weather. Furthermore, for light snowfalls, it might be possible that melting caused measuring the precise snowfall almost impossible.<br/>
 
 ### 3-2) Make a two-panel plot (A)
@@ -287,7 +300,9 @@ clean_ny_noaa %>%
                                   lineheight=1.2))
 ```
 
-* Comment on the plot<br/>
+* Some comment on the plot<br/>
+When we observe the average max temperature in January and in July in each station in NY across years, there is a clear distinction between January and July. The average max temperatures in July is higher than January. This makes sense due to NY's seasonal weather where in January it is winter and in July it is middle of summer. Also, there seems to be a wave pattern for both January and July but it is quite difficult to compare such pattern between the two months period.<br/>
+In terms of outliers, we are able to observe outliers from both January and July periods, but compared to January, during July, there seems to be more number of apparent outliers. In January, the largest outlier is observable in 1982, and in July, the largest outlier is observable in 1988, both showing much lower than average max temperatures.<br/>
 
 ### 3-3) Make a two-panel plot (B)
 
@@ -303,6 +318,8 @@ temp_plot =
       y = "Min Temperature (C)",
       caption = "Datasource: ny_noaa"
       ) +
+    scale_x_continuous(breaks = seq(-40, 60, 10)) +
+    scale_y_continuous(breaks = seq(-60, 60, 10)) +
     theme(plot.title = element_text(face="bold",
                                     hjust=0.5,
                                     lineheight=1.2))
@@ -329,25 +346,7 @@ temp_snow_plot = temp_plot / snow_plot
 temp_snow_plot
 ```
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+* Some comment on the plots<br/>
+Here, I have made two-panel plot each showing different information. The first panel shows relevant information on correlation between maximum and minimum temperature in NY for the full dataset of _ny_noaa_. It seems that there is a positive linear relationship between max and min temperature. Also, when we look at the different color distribution throughout the map, most of the observations occur in the middle. That is, in terms of max temperature, most observations approximately occur at both 5 and 25 degrees celcius; in terms of min temperature, most observations approximately occur at both 0 and 15 degrees celcius.<br/>
+The second panel shows the distribution of snowfall values that are greater than 0 and less than 100 across year from 1981 to 2010. I have added quartile lines (25th, 50th, 75th) and mean points to better observe the distribution of snowfall. By looking at it, it seems that there isn't apparent pattern throughout the year with very little variations from year to year. When we compare the mean values, it shows that in year 1994, 1999, and 2005, there were more snowfall on average compared to other years.<br/>
 
