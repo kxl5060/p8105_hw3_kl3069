@@ -259,9 +259,9 @@ clean_ny_noaa %>%
 * Comment on snowfall<br/>
 As we can see above, the most commonly observed value for snowfall is **0**mm, followed by **NA**, **25**mm, and **13**mm. We can assume that such result occurs as New York has seasonal weather. Furthermore, for light snowfalls, it might be possible that melting caused measuring the precise snowfall almost impossible.<br/>
 
-### 3-2) Make a two-panel plot (1)
+### 3-2) Make a two-panel plot (A)
 
-```{r two_panel_plot_1}
+```{r two_panel_plot_a}
 clean_ny_noaa %>% 
   select(id:month, tmax) %>%
   mutate(month = factor(month)) %>% 
@@ -289,44 +289,46 @@ clean_ny_noaa %>%
 
 * Comment on the plot<br/>
 
-### 3-3) Make a two-panel plot (2)
+### 3-3) Make a two-panel plot (B)
 
-```{r two_panel_plot_2}
+```{r two_panel_plot_b}
 temp_plot = 
   clean_ny_noaa %>% 
   ggplot(aes(x = tmax, y = tmin)) +
-  geom_hex(bins = 100) +
-  geom_smooth(se = FALSE) +
-  labs(
-    title = "Max Vs Min Temperature in NY",
-    x = "Max Temperature (C)",
-    y = "Min Temperature (C)",
-    caption = "Datasource: ny_noaa"
-    ) +
-  theme(plot.title = element_text(face="bold",
-                                  hjust=0.5,
-                                  lineheight=1.2))
+    geom_hex(bins = 100) +
+    geom_smooth(se = FALSE) +
+    labs(
+      title = "Max Vs Min Temperature in NY",
+      x = "Max Temperature (C)",
+      y = "Min Temperature (C)",
+      caption = "Datasource: ny_noaa"
+      ) +
+    theme(plot.title = element_text(face="bold",
+                                    hjust=0.5,
+                                    lineheight=1.2))
 
 snow_plot = 
   clean_ny_noaa %>% 
   filter(snow > 0 & snow < 100) %>% 
   mutate(year = factor(year)) %>% 
   ggplot(aes(x = year, y = snow)) +
-  geom_violin(draw_quantiles = c(0.25, 0.5, 0.75)) +
-  stat_summary(fun = "mean", color = "blue") +
-  theme(axis.text.x = element_text(angle = 90, vjust = 0.5)) +
-  labs(
-    title = "Snowfall Distribution in NY",
-    x = "Year",
-    y = "Snowfall (mm)",
-    caption = "Datasource: ny_noaa"
-    ) +
-  theme(plot.title = element_text(face="bold",
-                                  hjust=0.5,
-                                  lineheight=1.2))
+    geom_violin(draw_quantiles = c(0.25, 0.5, 0.75)) +
+    stat_summary(fun = "mean", color = "blue") +
+    theme(axis.text.x = element_text(angle = 90, vjust = 0.5)) +
+    labs(
+      title = "Snowfall Distribution in NY",
+      x = "Year",
+      y = "Snowfall (mm)",
+      caption = "Datasource: ny_noaa"
+      ) +
+    theme(plot.title = element_text(face="bold",
+                                    hjust=0.5,
+                                    lineheight=1.2))
 
 temp_snow_plot = temp_plot / snow_plot
 temp_snow_plot
+
+ggsave(filename = "temp_snow_plot.pdf", plot = temp_snow_plot)
 ```
 
 
