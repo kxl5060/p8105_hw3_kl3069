@@ -1,0 +1,326 @@
+---
+title: "P8105 Homework 3"
+author: "Kyung Suk Lee"
+date: "`r Sys.Date()`"
+output: 
+  github_document:
+    toc: yes
+---
+
+```{r load_packages, message = FALSE}
+library(tidyverse)
+library(p8105.datasets)
+
+knitr::opts_chunk$set(
+  fig.width = 6,
+  fig.asp = .6,
+  out.width = "90%")
+
+theme_set(theme_minimal() + theme(legend.position = "bottom"))
+
+options(
+  ggplot2.continuous.colour="viridis",
+  ggplot2.continuous.fill="viridis")
+
+scale_colour_discrete = scale_color_viridis_d
+scale_fill_discrete = scale_fill_viridis_d
+
+knitr::opts_chunk$set(comment = NA, message = F, warning = F, echo = T)
+```
+
+## Problem 1
+
+### 1-1) Write a short description of the dataset
+
+```{r instacart}
+data("instacart")
+head(instacart)
+```
+
+* Some description about the _instacart_ dataset<br/>
+_Instacart_ is an anonymized dataset with over 3 million online grocery orders from more than 200,000 _Instacart_ users. This dataset contains **`r nrow(instacart)`** rows and **`r ncol(instacart)`** columns. Observations are the level of items in orders by user. There are _`r names(instacart)`_ variables. For some of key variables, the dataset provides information with **`r instacart %>% distinct(order_id) %>% count()`** unique orders and **`r instacart %>% distinct(product_id) %>% count()`** unique products with **`r instacart %>% distinct(department_id) %>% count()`** departments which the products belong to.<br/>
+
+### 1-2) How many aisles are there, and which aisles are the most items ordered from?
+
+```{r number_of_aisles}
+# Number of aisles
+# Aisles with the most items ordered from
+
+instacart %>% 
+  janitor::clean_names() %>%
+  count(aisle, name = "number_of_aisles") %>% 
+  arrange(desc(number_of_aisles))
+```
+
+* Some comment on the result<br/>
+There are **`r instacart %>% count(aisle, name = "number_of_aisles") %>% arrange(desc(number_of_aisles)) %>% count()`** aisles and _`r instacart %>% count(aisle, name = "number_of_aisles") %>% arrange(desc(number_of_aisles)) %>% .[1,1]`_ is the most item ordered from with **`r instacart %>% count(aisle, name = "number_of_aisles") %>% arrange(desc(number_of_aisles)) %>% .[1,2]`** orders.<br/>
+
+### 1-3) Make a plot that shows the number of items ordered in each aisle
+
+```{r plot_number_items}
+# Make a plot that shows the number of items ordered in each aisle
+# Limiting this to aisles with more than 10000 items ordered
+# Arrange aisles sensibly, and organize your plot
+
+instacart %>% 
+  janitor::clean_names() %>% 
+  count(aisle, name = "number_of_aisles") %>% 
+  filter(number_of_aisles > 10000) %>% 
+  mutate(
+    aisle = factor(aisle),
+    aisle = fct_reorder(aisle, number_of_aisles)
+  ) %>% 
+  ggplot(aes(x = aisle, y = number_of_aisles)) +
+  geom_point() +
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust = 1)) +
+  theme(axis.text.y = element_text(vjust = 0.5, hjust = 1)) +
+  labs(
+    title = "The number of items ordered in each aisle",
+    x = "Aisle Name",
+    y = "Number of Items Ordered",
+    caption = "Data Source: Instacart") +
+  ylim(0, 160000)
+```
+
+### 1-4) Make a table showing the three most popular items
+
+```{r table_items}
+# Make a table showing the three most popular items in each of the aisles
+# Include the number of times each item is ordered in your table
+
+instacart %>% 
+  janitor::clean_names() %>% 
+  filter(aisle %in% c("baking ingredients", "dog food care", "packaged vegetables fruits")) %>% 
+  group_by(aisle) %>%
+  count(product_name, name = "number_of_orders") %>% 
+  mutate(rank = min_rank(desc(number_of_orders))) %>% 
+  filter(rank < 4) %>% 
+  arrange(aisle, rank) %>% 
+  knitr::kable()
+```
+
+### 1-5) Make a table showing the mean hour of the day
+
+```{r table_days}
+# Make a table showing the mean hour of the day at which Pink Lady Apples and Coffee Ice Cream are ordered on each day of the week
+# Format this table for human readers
+
+instacart %>% 
+  janitor::clean_names() %>% 
+  filter(product_name %in% c("Pink Lady Apples", "Coffee Ice Cream")) %>% 
+  mutate(order_dow = recode_factor
+         (order_dow,
+           "0" = "sunday",
+           "1" = "monday",
+           "2" = "tuesday",
+           "3" = "wednesday",
+           "4" = "thursday",
+           "5" = "friday",
+           "6" = "saturday")
+         ) %>%
+  group_by(product_name, order_dow) %>% 
+  summarize(mean_hour = mean(order_hour_of_day)) %>% 
+  pivot_wider(
+    names_from = order_dow,
+    values_from = mean_hour
+  ) %>% 
+  knitr::kable()
+```
+
+---
+
+## Problem 2
+
+### 2-1) Load, tidy, and otherwise wrangle the data
+
+```{r tidy_data}
+acc_tidy_df =
+  readr::read_csv("./data/accel_data.csv") %>% 
+  janitor::clean_names() %>% 
+  pivot_longer(
+    activity_1:activity_1440,
+    names_to = "activity",
+    values_to = "activity_counts"
+  ) %>% 
+  mutate(
+    activity_day = ifelse(day == "Saturday" | day == "Sunday", "weekend", "weekday")
+    )
+
+acc_tidy_df
+```
+
+* Some description of _accel_data_ dataset<br/>
+The initial _accel_data_ dataset comprised of _activity.#_ variables, which are the activity counts for each minute of a 24-hour day starting at midnight. This dataset was difficult for further analysis since all the _activity.#_ variables were shown as **`r ncol(readr::read_csv("./data/accel_data.csv"))`** columns with **`r nrow(readr::read_csv("./data/accel_data.csv"))`** rows. Thus, I have transformed the data using `pivot_longer` in order to separate _activity_ and _activity_counts_. Next, I have added an additional column, _activity_day_, to indicate whether the day was weekend or weekday. The tidy version of the dataset has the size of **`r ncol(acc_tidy_df)`** columns and **`r nrow(acc_tidy_df)`** rows and comprises of `r names(acc_tidy_df)` variables. I didn't find the need for encoding the variable classes, since all the variables already had reasonable variable classes (e.g., chr and dbl).<br/>
+
+### 2-2) Aggregate minutes and create a table
+
+```{r aggregate_table}
+acc_tidy_df %>% 
+  group_by(week, day, activity_day) %>% 
+  summarize(total_activiy_counts = sum(activity_counts)) %>% 
+  knitr::kable()
+```
+
+* Some comment on the table<br/>
+From the table, it seems that, in general, there is an increasing trend of _total_acitivity_counts_ on weekdays from Monday to Friday, excluding week 3 and week 4. Also, when I compared the mean of _total_acitivity_counts_ between weekday (`r acc_tidy_df %>% group_by(week, day, activity_day) %>%  summarize(total_activiy_counts = sum(activity_counts)) %>% filter(activity_day == "weekday") %>% pull(total_activiy_counts) %>% mean(trim = 0)`) and weekend (`r acc_tidy_df %>% group_by(week, day, activity_day) %>% summarize(total_activiy_counts = sum(activity_counts)) %>% filter(activity_day == "weekend") %>% pull(total_activiy_counts) %>% mean(trim = 0)`), it seems that, on average, there were more activity during the weekday compared to weekend.<br/>
+
+```{r}
+acc_tidy_df %>% 
+  group_by(week, day, activity_day) %>% 
+  summarize(total_activiy_counts = sum(activity_counts)) %>% 
+  filter(activity_day == "weekend") %>% 
+  pull(total_activiy_counts) %>% 
+  mean()
+```
+
+### 2-3) Make a single-panel plot
+
+```{r single_panel_plot}
+acc_tidy_df %>% 
+  mutate(activity = stringr::str_sub(activity, 10, 13),
+         activity = as.numeric(activity)
+         ) %>%  
+  ggplot(aes(x = activity, y = activity_counts, color = day)) +
+  geom_point(alpha = .5) +
+  geom_line(alpha = .5) +
+  scale_x_continuous(breaks = seq(60, 1440, by = 60), 
+                     labels = c(1:24)
+                     ) +
+  ylim(0, 10000) +
+  labs(
+    title = "24-hour Activity Time Courses for Each Day",
+    x = "Time (24-hour)",
+    y = "Physical Activity Counts",
+    caption = "Datasource: Advanced Cardiac Care Center of Columbia University Medical Center"
+  )
+```
+
+---
+
+## Problem 3
+
+```{r ny_noaa}
+# Write a short description of the dataset
+# Note the size and structure of the data
+# Describe some key variables
+# Indicate the extent to which missing data is an issue
+
+data("ny_noaa")
+head(ny_noaa)
+```
+
+* Some description about the _ny_noaa_ dataset<br/>
+This dataset contains information for all New York state weather stations from January 1, 1981 through December 31, 2010. The dataset provides information with _`r ny_noaa %>% names()`_. The size of the dataset has **`r ny_noaa %>% ncol()`** columns and **`r ny_noaa %>% nrow()`** rows. Some key variables include precipitation _(prcp)_  in tenth of mm, snowfall _(snow)_ in mm, snow depth _(snwd)_ in mm, and both maximum _(tmax)_ and minimum _(tmin)_ temperatures in tenths of degree Celcius.<br/>
+
+When we observe the missing values, for precipitation, **`r ny_noaa %>% pull(prcp) %>% is.na() %>% sum()`** values; for snowfall _(snow)_, **`r ny_noaa %>% pull(snow) %>% is.na() %>% sum()`** values; for snow depth _(snwd)_, **`r ny_noaa %>% pull(snwd) %>% is.na() %>% sum()`** values; for maximum temperatures _(tmax)_ , **`r ny_noaa %>% pull(tmax) %>% is.na() %>% sum()`** values; and for minimum temperatures _(tmin)_ , **`r ny_noaa %>% pull(tmin) %>% is.na() %>% sum()`** values are missing, respectively. This leaves us with only **`r ny_noaa %>% complete.cases() %>% sum()`** complete observations.<br/>
+
+### 3-1) For snowfall, what are the most commonly observed values?
+
+```{r data_cleaning}
+# Do some data cleaning
+# Create separate variables
+# Ensure observations are given in reasonable units
+
+clean_ny_noaa =
+  ny_noaa %>% 
+  janitor::clean_names() %>% 
+  separate(date, c("year", "month", "day"), sep = "-") %>%
+  mutate(
+    tmax = as.numeric(tmax),
+    tmin = as.numeric(tmin),
+    prcp = prcp * 10,
+    tmax = tmax / 10,
+    tmin = tmin / 10,
+    year = as.numeric(year),
+    month = as.numeric(month),
+    day = as.numeric(day)
+  )
+
+clean_ny_noaa
+```
+
+* Some description about the data cleaning process<br/>
+First, I have used `janitor::clean_names` to clean the column names. Then, I have separated _date_ variable to year, month, and day. Next, before the unit conversion process, I have changed both max and min temperatures from _chr_ to _dbl_. Finally, I have performed unit conversion on precipitation (1/10 mm) by multiplying 10 in order to match the unit with snowfall and snow depth which are all in mm. For both max and min temperatures, I have divided them by 10.<br/>
+
+```{r snowfall}
+clean_ny_noaa %>%
+  group_by(snow) %>% 
+  count(snow, name = "count") %>% 
+  arrange(desc(count)) %>% 
+  head()
+```
+
+* Comment on snowfall<br/>
+As we can see above, the most commonly observed value for snowfall is **0**mm, followed by **NA**, **25**mm, and **13**mm. We can assume that such result occurs as New York has seasonal weather. Furthermore, for light snowfalls, it might be possible that melting caused measuring the precise snowfall almost impossible.<br/>
+
+### 3-2) Make a two-panel plot (1)
+
+```{r two_panel_plot_1}
+clean_ny_noaa %>% 
+  select(id:month, tmax) %>%
+  mutate(month = factor(month)) %>% 
+  filter(month == "1" | month == "7") %>% 
+  group_by(id, year, month) %>% 
+  summarize(mean_tmax = mean(tmax)) %>%
+  mutate(month = recode_factor(month, "1" = "January", "7" = "July")) %>%
+  ggplot(aes(x = year, y = mean_tmax, color = id)) +
+    geom_point() +
+    geom_line(alpha = .5) +
+    theme(legend.position = "none") +
+    theme(axis.text.x = element_text(angle = 45, vjust = 0.5)) +
+    facet_grid(.~ month) +
+    scale_x_continuous(breaks = seq(1980, 2010, 2)) +
+    labs(
+      title = "NY average max temperature in January and in July",
+      x = "Year",
+      y = "Average max temperature (C)",
+      caption = "Datasource: ny_noaa"
+      ) +
+    theme(plot.title = element_text(face="bold",
+                                  hjust=0.5,
+                                  lineheight=1.2))
+```
+
+* Comment on the plot<br/>
+
+### 3-3) Make a two-panel plot (2)
+
+```{r two_panel_plot_2}
+clean_ny_noaa %>% 
+  ggplot(aes(x = tmax, y = tmin)) +
+  geom_hex(bins = 100) +
+  geom_smooth(se = FALSE) +
+  labs(
+    title = "Max Vs Min Temperature in NY",
+    x = "Max Temperature (C)",
+    y = "Min Temperature (C)",
+    caption = "Datasource: ny_noaa"
+    ) +
+  theme(plot.title = element_text(face="bold",
+                                  hjust=0.5,
+                                  lineheight=1.2))
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
